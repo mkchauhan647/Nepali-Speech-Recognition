@@ -1,7 +1,9 @@
-Django==5.0.2
+Django==4.2.11
 jiwer==3.0.3
 librosa==0.10.1
 numpy==1.24.1
 pydub==0.25.1
+Requests==2.31.0
 tensorflow==2.15.0
 tensorflow_intel==2.15.0
+~ensorflow_intel==2.11.0

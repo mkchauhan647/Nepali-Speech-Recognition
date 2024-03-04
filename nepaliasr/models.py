@@ -88,13 +88,25 @@ def predict_text(audio,sample_rate):
     print("Hello World from predict")
     print("version",tf.__version__)
 
-    # url = 'https://drive.google.com/file/d/1-1ewihGdTYGkW18rStn2dA_mqLdAN0Su/view?usp=sharing'
-    url = 'https://drive.usercontent.google.com/download?id=1-1ewihGdTYGkW18rStn2dA_mqLdAN0Su&export=download&confirm=t&uuid=0481515c-a1f0-4159-9e9c-3a2750f3c659'
-    response = requests.get(url)
+    file_name = 'model.h5'
+
+  # Check if the file exists in the current directory
+    if os.path.exists(file_name):
+      print(f"File '{file_name}' already exists. Using the existing file.")
+    else:
+    # If the file doesn't exist, proceed to download it
+    # Define the URL of the file
+      url = 'https://drive.usercontent.google.com/download?id=1-1ewihGdTYGkW18rStn2dA_mqLdAN0Su&export=download&confirm=t&uuid=0481515c-a1f0-4159-9e9c-3a2750f3c659'
+
+    # Send a GET request to download the file
+      response = requests.get(url)
 
     # Save the downloaded file locally
-    with open('model.h5', 'wb') as file:
-     file.write(response.content)
+      with open(file_name, 'wb') as file:
+        file.write(response.content)
+
+      print(f"File '{file_name}' downloaded successfully.")
+
 
     # model = tf.keras.models.load_model('final_model.h5',custom_objects={"CTCLoss":CTCLoss})
     model = tf.keras.models.load_model('model.h5',custom_objects={"CTCLoss":CTCLoss})
