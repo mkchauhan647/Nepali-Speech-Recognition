@@ -4,6 +4,7 @@ import librosa
 import json
 import numpy as np
 import requests
+import os
 def CTCLoss(y_true,y_pred):
   # print("This is y_true:",y_true)
   # print("This is y_pred:",y_pred)
@@ -84,15 +85,17 @@ def encode_audio(audio,sample_rate,label='dummy'):
 
 
 
-def predict_text(audio,sample_rate):
+def predict_text(audio,sample_rate,modelname):
     print("Hello World from predict")
     print("version",tf.__version__)
 
-    file_name = 'model.h5'
+    # file_name = '384-40k-v2-extended-pro.h5'
+    # file_name = 'final_model.h5'
+    # file_name = 'final_latest_v1.h5'
 
   # Check if the file exists in the current directory
-    if os.path.exists(file_name):
-      print(f"File '{file_name}' already exists. Using the existing file.")
+    if os.path.exists(modelname):
+      print(f"File '{modelname}' already exists. Using the existing file.")
     else:
     # If the file doesn't exist, proceed to download it
     # Define the URL of the file
@@ -102,14 +105,14 @@ def predict_text(audio,sample_rate):
       response = requests.get(url)
 
     # Save the downloaded file locally
-      with open(file_name, 'wb') as file:
+      with open(modelname, 'wb') as file:
         file.write(response.content)
 
-      print(f"File '{file_name}' downloaded successfully.")
+      print(f"File '{modelname}' downloaded successfully.")
 
 
     # model = tf.keras.models.load_model('final_model.h5',custom_objects={"CTCLoss":CTCLoss})
-    model = tf.keras.models.load_model('model.h5',custom_objects={"CTCLoss":CTCLoss})
+    model = tf.keras.models.load_model(modelname,custom_objects={"CTCLoss":CTCLoss})
     # encode_audio(audio=audio,sample_rate=sample_rate)
     # preprocessed_audio, label= encode_audio('record (2).wav')
     preprocessed_audio, label= encode_audio(audio,sample_rate)

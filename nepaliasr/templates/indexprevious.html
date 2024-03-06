@@ -1,0 +1,474 @@
+<!-- 
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Audio Upload and Record</title>
+</head>
+<body>
+
+<h2>Upload or Record Audio</h2>
+<button id="startBtn" onclick="startRecording()">Start Recording</button>
+<button id="stopBtn" onclick="stopRecording()" disabled>Stop Recording</button>
+<audio id="audioPlayback" controls></audio>
+<input type="text" id="originalText" placeholder="Enter original text here">
+<button onclick="submitAudio()">Submit Audio</button>
+
+
+<hr>
+
+
+<h2>Upload Audio</h2>
+<input type="file" id="audioFile" accept="audio/wav">
+<input type="text" id="originalTextUpload" placeholder="Enter original text here">
+<button onclick="submitAudio(true)">Submit Uploaded Audio</button> -->
+<!-- <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audio Upload and Record</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 20px;
+        }
+
+        h2 {
+            margin-bottom: 10px;
+        }
+
+        button {
+            margin-right: 10px;
+            padding: 8px;
+            cursor: pointer;
+        }
+
+        audio, input[type="file"], input[type="text"] {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<h2>Record Audio</h2>
+<button id="startBtn" onclick="startRecording()">Start Recording</button>
+<button id="stopBtn" onclick="stopRecording()" disabled>Stop Recording</button>
+<audio id="audioPlayback" controls></audio>
+<input type="text" id="originalTextRecord" placeholder="Enter original text here">
+<button onclick="submitAudio()">Submit Audio</button>
+
+<hr>
+
+<h2>Upload Audio</h2>
+<input type="file" id="audioFile" accept="audio/wav">
+<input type="text" id="originalTextUpload" placeholder="Enter original text here">
+<audio id="audioPlaybackUpload" controls></audio>
+<button onclick="submitAudio(true)">Submit Uploaded Audio</button>
+<script>
+let mediaRecorder;
+let audioChunks = [];
+
+function startRecording() {
+    navigator.mediaDevices.getUserMedia({ audio: true })
+        .then(stream => {
+            mediaRecorder = new MediaRecorder(stream);
+            audioChunks = [];
+            mediaRecorder.ondataavailable = event => audioChunks.push(event.data);
+            mediaRecorder.start();
+            
+            document.getElementById('startBtn').disabled = true;
+            document.getElementById('stopBtn').disabled = false;
+        })
+        .catch(error => console.error("Error accessing media devices:", error));
+}
+
+function stopRecording() {
+    mediaRecorder.stop();
+    document.getElementById('startBtn').disabled = false;
+    document.getElementById('stopBtn').disabled = true;
+    
+    mediaRecorder.onstop = async () => {
+        const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+        const audioUrl = URL.createObjectURL(audioBlob);
+        document.getElementById('audioPlayback').src = audioUrl;
+        
+        // Prepare form data for submission
+        // const formData = new FormData();
+        // formData.append('audio', audioBlob);
+        // formData.append('original_text', document.getElementById('originalText').value);
+        
+        // submitAudio(formData);
+    };
+}
+
+function submitAudio(upload_audio = false) {
+    const formData = new FormData();
+
+    if (!upload_audio) {
+        const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+        const audioUrl = URL.createObjectURL(audioBlob);
+
+        console.log(audioUrl, audioChunks, audioBlob);
+
+        // Prepare form data for submission
+        formData.append('audio', audioBlob);
+        formData.append('original_text', document.getElementById('originalTextRecord').value);
+    } else {
+      
+        // Handle file upload
+        const audioFileInput = document.getElementById("audioFile");
+        formData.append('audio', audioFileInput.files[0]);
+        formData.append('original_text', document.getElementById('originalTextUpload').value);
+
+        
+    }
+
+    fetch("/process_audio/", {
+        method: "POST",
+        body: formData,
+    })
+        .then(response => response.json())
+        .then(data => {
+            console.log(data);
+            alert(`Predicted Text: ${data.predicted_text}\nWord Error Rate: ${data.word_error_rate}`);
+        })
+        .catch(error => console.error("Error:", error));
+}
+
+// function submitAudio(upload_audio=false) {
+
+//   const formData = new FormData();
+//   if(!upload_audio){
+
+//     const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+//     const audioUrl = URL.createObjectURL(audioBlob);
+
+//     console.log(audioUrl,audioChunks,audioBlob)
+//     // Prepare form data for submission
+//     formData.append('audio', audioBlob);
+//     formData.append('original_text', document.getElementById('originalText').value);
+//   }
+
+//   else {
+
+//   }
+//     fetch("/process_audio/", {
+//         method: "POST",
+//         body: formData,
+//     })
+//     .then(response => response.json())
+//     .then(data => {
+//         console.log(data);
+//         alert(`Predicted Text: ${data.predicted_text}\nWord Error Rate: ${data.word_error_rate}`);
+//     })
+//     .catch(error => console.error("Error:", error));
+// }
+</script>
+
+</body>
+</html>
+
+--->
+
+
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Audio Upload and Record</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                background-color: #f4f4f4;
+                margin: 0;
+                padding: 20px;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                height: 100vh;
+            }
+
+            .form-container {
+                background-color: #fff;
+                padding: 20px;
+                border-radius: 8px;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            }
+
+            .form-group {
+                margin-bottom: 20px;
+            }
+
+            label {
+                display: block;
+                margin-bottom: 5px;
+            }
+
+            input[type='file'] {
+                display: block;
+                width: 100%;
+            }
+
+            .submit-btn {
+                background-color: #007bff;
+                color: #fff;
+                padding: 10px 15px;
+                border: none;
+                border-radius: 5px;
+                cursor: pointer;
+                font-size: 16px;
+            }
+
+            .submit-btn:hover {
+                background-color: #0056b3;
+            }
+
+            .loading-icon {
+                border: 4px solid #f3f3f3; /* Light grey */
+                border-top: 4px solid #3498db; /* Blue */
+                border-radius: 50%;
+                width: 40px;
+                height: 40px;
+                animation: spin 2s linear infinite;
+                margin: 20px auto; /* Center the loader */
+            }
+
+            @keyframes spin {
+                0% {
+                    transform: rotate(0deg);
+                }
+                100% {
+                    transform: rotate(360deg);
+                }
+            }
+            .audio-container {
+                max-width: 600px;
+                margin: auto;
+                padding: 20px;
+                background-color: #f9f9f9;
+                border-radius: 10px;
+            }
+
+            .heading {
+                color: #333;
+                text-align: center;
+            }
+
+            .btn {
+                display: inline-block;
+                padding: 10px 20px;
+                margin: 5px;
+                border-radius: 5px;
+                border: none;
+                cursor: pointer;
+            }
+
+            .btn-primary {
+                background-color: #007bff;
+                color: white;
+            }
+
+            .btn-secondary {
+                background-color: #6c757d;
+                color: white;
+            }
+
+            .btn-submit {
+                background-color: #28a745;
+                color: white;
+            }
+
+            .text-input,
+            .file-input {
+                width: 100%;
+                padding: 10px;
+                margin: 10px 0;
+                border-radius: 5px;
+                border: 1px solid #ccc;
+            }
+
+            .audio-playback {
+                width: 100%;
+                margin-top: 10px;
+            }
+
+            .divider {
+                margin-top: 20px;
+                margin-bottom: 20px;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="audioForm audio-container">
+            <h2 class="heading">Record Audio</h2>
+            <button
+                id="startBtn"
+                class="btn btn-primary"
+                onclick="startRecording()"
+            >
+                Start Recording
+            </button>
+            <button
+                id="stopBtn"
+                class="btn btn-secondary"
+                onclick="stopRecording()"
+                disabled
+            >
+                Stop Recording
+            </button>
+            <audio id="audioPlayback" class="audio-playback" controls></audio>
+            <input
+                type="text"
+                id="originalTextRecord"
+                class="text-input"
+                placeholder="Enter original text here"
+            />
+            <button class="btn btn-submit" onclick="submitAudio()">
+                Submit Audio
+            </button>
+
+            <hr class="divider" />
+
+            <h2 class="heading">Upload Audio</h2>
+            <input
+                type="file"
+                id="audioFile"
+                class="file-input"
+                accept="audio/wav"
+            />
+            <input
+                type="text"
+                id="originalTextUpload"
+                class="text-input"
+                placeholder="Enter original text here"
+            />
+            <audio
+                id="audioPlaybackUpload"
+                class="audio-playback"
+                controls
+            ></audio>
+            <button class="btn btn-submit" onclick="submitAudio(true)">
+                Submit Uploaded Audio
+            </button>
+
+            <div
+                id="loadingIcon"
+                class="loading-icon"
+                style="display: none"
+            ></div>
+            <h2 id="predictedText"></h2>
+        </div>
+        <script>
+            let mediaRecorder;
+            let audioChunks = [];
+
+            function startRecording() {
+                navigator.mediaDevices
+                    .getUserMedia({ audio: true })
+                    .then((stream) => {
+                        mediaRecorder = new MediaRecorder(stream);
+                        audioChunks = [];
+                        mediaRecorder.ondataavailable = (event) =>
+                            audioChunks.push(event.data);
+                        mediaRecorder.start();
+
+                        document.getElementById('startBtn').disabled = true;
+                        document.getElementById('stopBtn').disabled = false;
+                    })
+                    .catch((error) =>
+                        console.error('Error accessing media devices:', error)
+                    );
+            }
+
+            function stopRecording() {
+                mediaRecorder.stop();
+                document.getElementById('startBtn').disabled = false;
+                document.getElementById('stopBtn').disabled = true;
+
+                mediaRecorder.onstop = async () => {
+                    const audioBlob = new Blob(audioChunks, {
+                        type: 'audio/wav',
+                    });
+                    const audioUrl = URL.createObjectURL(audioBlob);
+                    document.getElementById('audioPlayback').src = audioUrl;
+
+                    // Prepare form data for submission
+                    // const formData = new FormData();
+                    // formData.append('audio', audioBlob);
+                    // formData.append('original_text', document.getElementById('originalText').value);
+
+                    // submitAudio(formData);
+                };
+            }
+
+            function submitAudio(upload_audio = false) {
+                document.getElementById('loadingIcon').style.display = 'block';
+                const formData = new FormData();
+
+                if (!upload_audio) {
+                    const audioBlob = new Blob(audioChunks, {
+                        type: 'audio/wav',
+                    });
+                    const audioUrl = URL.createObjectURL(audioBlob);
+
+                    console.log(audioUrl, audioChunks, audioBlob);
+
+                    // Prepare form data for submission
+                    formData.append('audio', audioBlob);
+                    formData.append(
+                        'original_text',
+                        document.getElementById('originalTextRecord').value
+                    );
+                    // document.getElementById('loadingIcon').style.display =
+                    //     'none';
+                } else {
+                    // Handle file upload
+                    const audioFileInput = document.getElementById('audioFile');
+                    formData.append('audio', audioFileInput.files[0]);
+                    formData.append(
+                        'original_text',
+                        document.getElementById('originalTextUpload').value
+                    );
+                }
+
+                fetch('/process_audio/', {
+                    method: 'POST',
+                    body: formData,
+                })
+                    .then((response) => response.json())
+                    .then((data) => {
+                        console.log(data);
+                        document.getElementById('predictedText').innerText =
+                            data.predicted_text;
+                        document.getElementById('loadingIcon').style.display =
+                            'none';
+                    })
+                    .catch((error) => console.error('Error:', error));
+            }
+            document
+                .getElementById('audioFile')
+                .addEventListener('change', function (e) {
+                    var file = e.target.files[0];
+                    if (!file) {
+                        return;
+                    }
+
+                    var reader = new FileReader();
+                    reader.onload = function (e) {
+                        var src = e.target.result;
+                        var audioPlayback = document.getElementById(
+                            'audioPlaybackUpload'
+                        );
+                        audioPlayback.src = src;
+                        audioPlayback.load(); // Load and play the file
+                        audioPlayback.play();
+                    };
+                    reader.readAsDataURL(file);
+                });
+        </script>
+    </body>
+</html>
+
+
+

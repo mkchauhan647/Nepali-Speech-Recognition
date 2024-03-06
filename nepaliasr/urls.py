@@ -21,6 +21,9 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('',views.index,name='index'),
     path('process_audio/', views.process_audio, name='process_audio'),
+    path('save_json/', views.save_json, name='save_json'),
+    path('get_json/', views.get_json, name='get_json'),
+    path('get_models/', views.get_models, name='get_models'),
 
 ]
 

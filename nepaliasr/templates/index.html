@@ -1,177 +1,484 @@
-<!-- 
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Audio Upload and Record</title>
-</head>
-<body>
-
-<h2>Upload or Record Audio</h2>
-<button id="startBtn" onclick="startRecording()">Start Recording</button>
-<button id="stopBtn" onclick="stopRecording()" disabled>Stop Recording</button>
-<audio id="audioPlayback" controls></audio>
-<input type="text" id="originalText" placeholder="Enter original text here">
-<button onclick="submitAudio()">Submit Audio</button>
-
-
-<hr>
-
-
-<h2>Upload Audio</h2>
-<input type="file" id="audioFile" accept="audio/wav">
-<input type="text" id="originalTextUpload" placeholder="Enter original text here">
-<button onclick="submitAudio(true)">Submit Uploaded Audio</button> -->
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Audio Upload and Record</title>
-    <style>
-        body {
-            font-family: 'Arial', sans-serif;
-            margin: 20px;
-        }
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Audio Upload and Record</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                background-color: #f4f4f4;
+                margin: 0;
+                padding: 20px;
+                display: flex;
+                flex-direction: column;
 
-        h2 {
-            margin-bottom: 10px;
-        }
+                align-items: center;
+                min-height: 100vh; /* Ensure full page height */
+            }
 
-        button {
-            margin-right: 10px;
+            .audio-container {
+                max-width: 1400px;
+
+                margin: 20px auto;
+                padding: 20px;
+                background-color: #fff; /* Lighter color for better contrast */
+                border-radius: 8px;
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+                display: flex;
+                /* flex-direction: column; Stack elements vertically */
+                gap: 2rem; /* Consistent spacing between elements */
+            }
+
+            .heading {
+                color: #333;
+                margin-bottom: 16px; /* More space above headings */
+            }
+
+            .btn,
+            .text-input,
+            .file-input {
+                padding: 1rem;
+                width: 90%; /* Ensure full width within container */
+                margin: 8px 0; /* Uniform margin for vertical spacing */
+                border-radius: 4px; /* Softer corner radius */
+            }
+
+            .btn {
+                background-color: #007bff;
+                color: white;
+                border: none;
+                cursor: pointer;
+                font-weight: bold; /* Make button text stand out */
+                border-radius: 100px;
+                transition: background-color 0.3s ease; /* Smooth transition for hover effect */
+            }
+
+            .btn:hover {
+                background-color: #0056b3; /* Darker shade on hover */
+            }
+
+            .btn-secondary {
+                background-color: #0056b3;
+            }
+
+            .btn-submit {
+                background-color: #28a745;
+            }
+
+            .file-input {
+                padding: 1rem;
+                border: 1px solid #ccc; /* Define border to match text inputs */
+                cursor: pointer; /* Indicate that element is interactive */
+            }
+
+            .text-input {
+                border: 1px solid #ccc;
+            }
+
+            .audio-playback {
+                padding: 1rem;
+                width: 90%; /* Ensure audio control spans the container width */
+                margin-top: 10px; /* Space above the audio playback control */
+            }
+
+            .loading-icon {
+                border: 4px solid #f3f3f3; /* Light grey */
+                border-top: 4px solid #3498db; /* Blue */
+                border-radius: 50%;
+                width: 40px;
+                height: 40px;
+                animation: spin 2s linear infinite;
+                margin: 20px auto; /* Center the loader */
+            }
+
+            table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        table, th, td {
+            border: 1px solid black;
+        }
+        th, td {
             padding: 8px;
-            cursor: pointer;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
         }
 
-        audio, input[type="file"], input[type="text"] {
-            margin-bottom: 10px;
+
+        .select-style {
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            overflow: hidden;
+            padding: 5px;
+            width: 200px;
         }
-    </style>
-</head>
-<body>
+        .select-style select {
+            background-color: #f2f2f2;
+            border: none;
+            font-size: 16px;
+            height: 30px;
+            padding: 5px;
+            width: 100%;
+        }
 
-<h2>Record Audio</h2>
-<button id="startBtn" onclick="startRecording()">Start Recording</button>
-<button id="stopBtn" onclick="stopRecording()" disabled>Stop Recording</button>
-<audio id="audioPlayback" controls></audio>
-<input type="text" id="originalTextRecord" placeholder="Enter original text here">
-<button onclick="submitAudio()">Submit Audio</button>
+            @keyframes spin {
+                0% {
+                    transform: rotate(0deg);
+                }
+                100% {
+                    transform: rotate(360deg);
+                }
+            }
 
-<hr>
+            /* Responsive adjustments for smaller screens */
+            @media (max-width: 640px) {
+                .audio-container {
+                    width: 90%; /* Allow more margin on small screens */
+                    flex-direction: column; /* Stack elements for better mobile readability */
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <p>Please select a model:</p>
+        <div class="select-style">
+            <select name="model" id="model-selector">
+                <!-- Options will be loaded dynamically using JavaScript -->
+            </select>
+        </div>
 
-<h2>Upload Audio</h2>
-<input type="file" id="audioFile" accept="audio/wav">
-<input type="text" id="originalTextUpload" placeholder="Enter original text here">
-<audio id="audioPlaybackUpload" controls></audio>
-<button onclick="submitAudio(true)">Submit Uploaded Audio</button>
-<script>
-let mediaRecorder;
-let audioChunks = [];
+        <div class="audioForm audio-container">
+            <div>
+                <h2 class="heading">Record Audio</h2>
+                <button
+                    id="startBtn"
+                    class="btn btn-primary"
+                    onclick="startRecording(event)"
+                >
+                    Start Recording
+                </button>
+                <button
+                    id="stopBtn"
+                    class="btn btn-secondary"
+                    onclick="stopRecording()"
+                    disabled
+                >
+                    Stop Recording
+                </button>
+                <audio
+                    id="audioPlayback"
+                    class="audio-playback"
+                    controls
+                ></audio>
+                <input
+                    type="text"
+                    id="originalTextRecord"
+                    class="text-input"
+                    placeholder="Enter original text here"
+                    value="text"
+                />
+              
+                <button class="btn btn-submit" onclick="submitAudio()">
+                    Submit Audio
+                </button>
+                <button class="btn btn-save" onclick="saveDataToJson('record')">Save to JSON</button>
+            </div>
 
-function startRecording() {
-    navigator.mediaDevices.getUserMedia({ audio: true })
-        .then(stream => {
-            mediaRecorder = new MediaRecorder(stream);
-            audioChunks = [];
-            mediaRecorder.ondataavailable = event => audioChunks.push(event.data);
-            mediaRecorder.start();
-            
-            document.getElementById('startBtn').disabled = true;
-            document.getElementById('stopBtn').disabled = false;
-        })
-        .catch(error => console.error("Error accessing media devices:", error));
-}
+            <div>
+                <h2 class="heading">Upload Audio</h2>
+                <input
+                    type="file"
+                    id="audioFile"
+                    class="file-input"
+                    accept="audio/wav"
+                    onchange="updateFilename()"
+                    
+                />
+                <input
+                    type="text"
+                    id="originalTextUpload"
+                    class="text-input"
+                    placeholder="Enter original text here"
+                    value="text"
+                />
+                <audio
+                    id="audioPlaybackUpload"
+                    class="audio-playback"
+                    controls
+                ></audio>
+                <button class="btn btn-submit" onclick="submitAudio(true)">
+                    Submit Uploaded Audio
+                </button>
+                <button class="btn btn-save" onclick="saveDataToJson('upload')">Save to JSON</button>
+            </div>
+        </div>
+        <div>
+            <div
+                id="loadingIcon"
+                class="loading-icon"
+                style="display: none"
+            ></div>
+            <h3 id="predictedText">Predicted Text: </h2>
+            <h3 id="wordErrorRate"> Word Error Rate: </h2>
+        </div>
 
-function stopRecording() {
-    mediaRecorder.stop();
-    document.getElementById('startBtn').disabled = false;
-    document.getElementById('stopBtn').disabled = true;
-    
-    mediaRecorder.onstop = async () => {
-        const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
-        const audioUrl = URL.createObjectURL(audioBlob);
-        document.getElementById('audioPlayback').src = audioUrl;
-        
-        // Prepare form data for submission
-        // const formData = new FormData();
-        // formData.append('audio', audioBlob);
-        // formData.append('original_text', document.getElementById('originalText').value);
-        
-        // submitAudio(formData);
-    };
-}
+        <table id="data-table">
+            <tr>
+                <th>Filename</th>
+                <th>Transcription</th>
+                <th>Predicted Text</th>
+                <th>Word Error Rate</th>
+            </tr>
+            <!-- Rows will be dynamically inserted here based on the JSON data -->
+        </table>
 
-function submitAudio(upload_audio = false) {
-    const formData = new FormData();
+        <script>
+            let mediaRecorder;
+            let audioChunks = [];
+            let predicted_text_global;
+            let word_error_rate_global;
+            let modelname;
 
-    if (!upload_audio) {
-        const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
-        const audioUrl = URL.createObjectURL(audioBlob);
+            function startRecording(event) {
+    // Update button styles
+    const startBtn = document.getElementById('startBtn');
+    startBtn.style.backgroundColor = 'red';
+    // startBtn.style.borderRadius = '100px'; // Uncomment if you want a circular button
 
-        console.log(audioUrl, audioChunks, audioBlob);
-
-        // Prepare form data for submission
-        formData.append('audio', audioBlob);
-        formData.append('original_text', document.getElementById('originalTextRecord').value);
-    } else {
-      
-        // Handle file upload
-        const audioFileInput = document.getElementById("audioFile");
-        formData.append('audio', audioFileInput.files[0]);
-        formData.append('original_text', document.getElementById('originalTextUpload').value);
-
-        
+    // Check for getUserMedia support
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        console.error('MediaDevices interface or getUserMedia method not available.');
+        alert('Your browser does not support the required media devices features.');
+        return;
     }
 
-    fetch("/process_audio/", {
-        method: "POST",
-        body: formData,
-    })
-        .then(response => response.json())
-        .then(data => {
-            console.log(data);
-            alert(`Predicted Text: ${data.predicted_text}\nWord Error Rate: ${data.word_error_rate}`);
+    navigator.mediaDevices
+        .getUserMedia({ audio: true })
+        .then((stream) => {
+            // Assuming mediaRecorder and audioChunks are declared elsewhere in your script
+            mediaRecorder = new MediaRecorder(stream);
+            audioChunks = [];
+
+            mediaRecorder.ondataavailable = (event) => {
+                audioChunks.push(event.data);
+            };
+
+            mediaRecorder.start();
+
+            // Update button states
+            startBtn.disabled = true;
+            document.getElementById('stopBtn').disabled = false;
         })
-        .catch(error => console.error("Error:", error));
+        .catch((error) => {
+            console.error('Error accessing media devices:', error);
+            // Provide more user-friendly feedback here, e.g., a dialog or altering the page content
+            alert('Error accessing your microphone. Please ensure you have given permission.');
+        });
 }
 
-// function submitAudio(upload_audio=false) {
 
-//   const formData = new FormData();
-//   if(!upload_audio){
+            function stopRecording() {
+                mediaRecorder.stop();
+                document.getElementById('startBtn').style.backgroundColor = '#0056b3';
+                document.getElementById('stopBtn').style.backgroundColor = 'gray';
+                document.getElementById('startBtn').disabled = false;
+                document.getElementById('stopBtn').disabled = true;
 
-//     const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
-//     const audioUrl = URL.createObjectURL(audioBlob);
+                mediaRecorder.onstop = async () => {
+                    const audioBlob = new Blob(audioChunks, {
+                        type: 'audio/wav',
+                    });
+                    const audioUrl = URL.createObjectURL(audioBlob);
+                    document.getElementById('audioPlayback').src = audioUrl;
 
-//     console.log(audioUrl,audioChunks,audioBlob)
-//     // Prepare form data for submission
-//     formData.append('audio', audioBlob);
-//     formData.append('original_text', document.getElementById('originalText').value);
-//   }
+                    // Prepare form data for submission
+                    // const formData = new FormData();
+                    // formData.append('audio', audioBlob);
+                    // formData.append('original_text', document.getElementById('originalText').value);
 
-//   else {
+                    // submitAudio(formData);
+                };
+            }
 
-//   }
-//     fetch("/process_audio/", {
-//         method: "POST",
-//         body: formData,
-//     })
-//     .then(response => response.json())
-//     .then(data => {
-//         console.log(data);
-//         alert(`Predicted Text: ${data.predicted_text}\nWord Error Rate: ${data.word_error_rate}`);
-//     })
-//     .catch(error => console.error("Error:", error));
-// }
-</script>
+            function submitAudio(upload_audio = false) {
+                document.getElementById('loadingIcon').style.display = 'block';
+                const formData = new FormData();
 
-</body>
+                formData.append('modelname',modelname)
+                if (!upload_audio) {
+                    const audioBlob = new Blob(audioChunks, {
+                        type: 'audio/wav',
+                    });
+                    const audioUrl = URL.createObjectURL(audioBlob);
+
+                    console.log(audioUrl, audioChunks, audioBlob);
+
+                    // Prepare form data for submission
+                    formData.append('audio', audioBlob);
+                    formData.append(
+                        'original_text',
+                        document.getElementById('originalTextRecord').value
+                    );
+                    console.log("before adding in form modelname",modelname)
+                    // document.getElementById('loadingIcon').style.display =
+                    //     'none';
+                } else {
+                    // Handle file upload
+                    const audioFileInput = document.getElementById('audioFile');
+                    formData.append('audio', audioFileInput.files[0]);
+                    formData.append(
+                        'original_text',
+                        document.getElementById('originalTextUpload').value
+                    );
+                }
+
+                fetch('/process_audio/', {
+                    method: 'POST',
+                    body: formData,
+                })
+                    .then((response) => response.json())
+                    .then((data) => {
+                        console.log(data);
+                        document.getElementById('predictedText').innerText =
+                          'PredictedText: ' + data.predicted_text;
+                        document.getElementById('wordErrorRate').innerText =
+                           'wordErrorRate: ' + data.word_error_rate;
+                        predicted_text_global = data.predicted_text;
+                        word_error_rate_global = data.word_error_rate;
+                        document.getElementById('loadingIcon').style.display =
+                            'none';
+                    })
+                    .catch((error) => console.error('Error:', error));
+            }
+            document
+                .getElementById('audioFile')
+                .addEventListener('change', function (e) {
+                    var file = e.target.files[0];
+                    if (!file) {
+                        return;
+                    }
+
+                    var reader = new FileReader();
+                    reader.onload = function (e) {
+                        var src = e.target.result;
+                        var audioPlayback = document.getElementById(
+                            'audioPlaybackUpload'
+                        );
+                        audioPlayback.src = src;
+                        audioPlayback.load(); // Load and play the file
+                        audioPlayback.play();
+                    };
+                    reader.readAsDataURL(file);
+                });
+
+
+
+            // Saving into Json format 
+
+        function updateFilename() {
+    // Extract filename from uploaded file and display it or use it in your application
+    const uploadedFile = document.getElementById('audioFile').files[0];
+    if (uploadedFile) {
+        // Optional: Update some element with the filename or store it in a variable
+        console.log("Uploaded filename:", uploadedFile.name);
+    }
+}
+
+function saveDataToJson(actionType) {
+    let originalText = '';
+    let filename = '';
+
+    if (actionType === 'record') {
+        originalText = document.getElementById('originalTextRecord').value;
+        filename =  'recordedAudio.wav'; // Use input or default
+    } else if (actionType === 'upload') {
+        originalText = document.getElementById('originalTextUpload').value;
+        const uploadedFile = document.getElementById('audioFile').files[0];
+        filename = uploadedFile ? uploadedFile.name : 'uploadedAudio.wav'; // Use uploaded file name or default
+    }
+
+    const data = {
+        filename: filename,
+        transcription: originalText,
+        predicted_text: predicted_text_global, // Placeholder
+        word_error_rate: word_error_rate_global, // Placeholder
+    };
+
+    const jsonString = JSON.stringify(data, null, 2);
+    // triggerDownload(jsonString, `data.json`);
+    fetch('/save_json/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            // Include CSRF token as needed
+        },
+        body: jsonString,
+    })
+    .then(response => response.json())
+    .then(data => {console.log(data);alert('Json file saved successfully.')})
+    .catch((error) => {
+        console.error('Error:', error);
+    });
+}      
+      
+      
+    
+     // Loading Json File previously saved
+    fetch('/get_json/')
+    .then(response => response.json())
+    .then(data => {
+        // Once the data is loaded, populate the table
+        const table = document.getElementById('data-table');
+        console.log("Thid is data",data)
+        data.forEach(item => {
+            const row = table.insertRow();
+            const filenameCell = row.insertCell();
+            filenameCell.textContent = item.filename;
+            const transcriptionCell = row.insertCell();
+            transcriptionCell.textContent = item.transcription;
+            const predictedTextCell = row.insertCell();
+            predictedTextCell.textContent = item.predicted_text;
+            const wordErrorRateCell = row.insertCell();
+            wordErrorRateCell.textContent = ( item.word_error_rate.toFixed(3) );
+            
+        });
+    })
+    .catch(error => console.error('Error loading the JSON file:', error))
+
+
+    // Loading Model Names to use
+    // Load model filenames dynamically using JavaScript
+    fetch('/get_models/') // This URL should map to a Django view that returns the model filenames as JSON
+            .then(response =>  response.json())
+            .then(data => {
+                console.log("This is data",data)
+                const modelSelector = document.getElementById('model-selector');
+                data.models.forEach((model,index) => {
+                    const option = document.createElement('option');
+                    option.value = model;
+                    option.textContent = model;
+                    if (index === 0) {  // Select the first model by default
+                        option.selected = true;
+                        modelname = model
+                        console.log("This is model name",model)
+                    }
+                    modelSelector.appendChild(option);
+                });
+            });
+
+    const modelSelector = document.getElementById('model-selector');
+    // modelname = modelSelector.textContent;
+    modelSelector.addEventListener('change', function() {
+        modelname = this.value;
+        console.log("This is model name inside eventlistener",modelname)
+        // fetch(`/set_model_name/?model_name=${selectedModel}`);
+    });
+    
+
+
+        </script>
+    </body>
 </html>
-
-
-
-
-
-
-
-
